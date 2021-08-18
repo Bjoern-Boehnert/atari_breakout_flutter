@@ -14,7 +14,6 @@ class Ball extends GameEntity {
   void move() {
     this.x += _STEP_SIZE * _dx * _speed;
     this.y += _STEP_SIZE * _dy;
-    print("X: " + x.toString() + " Y: " + y.toString());
   }
 
   void reflectY() {
