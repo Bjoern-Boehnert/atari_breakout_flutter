@@ -70,7 +70,7 @@ class GameBoard {
     if (isWin()) {
       // Gewonnen
       _isStarted = false;
-    } else if (_ball.x + _ball.width > _height) {
+    } else if (_ball.y + _ball.width > _height) {
       // Verloren
       _isStarted = false;
     } else if (_ball.x < 0 || (_ball.x + _ball.width) > _width) {
@@ -83,7 +83,7 @@ class GameBoard {
     } else if (_paddle.isIntersecting(_ball)) {
       // Is reflected by paddle
       _ball.reflectY();
-      double reflectingPos = paddle.getReflectFactor(ball.x + ball.width) / 2;
+      double reflectingPos = paddle.getReflectFactor(ball.x + ball.width / 2);
       ball.reflectByPaddle(reflectingPos);
     }
     _ball.move();
