@@ -1,4 +1,4 @@
-import 'package:atari_breakout_flutter/game_controller.dart';
+import 'package:atari_breakout_flutter/view/game_controller.dart';
 import 'package:flame/util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

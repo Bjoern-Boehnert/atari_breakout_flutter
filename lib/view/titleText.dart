@@ -1,12 +1,12 @@
-import 'package:atari_breakout_flutter/game_controller.dart';
+import 'package:atari_breakout_flutter/view/game_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class GameOverScreen {
+class TitleText {
   final GameController _controller;
   late TextPainter _painter;
 
-  GameOverScreen(this._controller) {
+  TitleText(this._controller) {
     _painter = TextPainter(
         textAlign: TextAlign.center, textDirection: TextDirection.ltr);
   }

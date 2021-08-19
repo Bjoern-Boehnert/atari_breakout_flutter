@@ -1,25 +1,23 @@
 import 'dart:ui';
 
-import 'package:atari_breakout_flutter/entities/GameOverScreen.dart';
-import 'package:atari_breakout_flutter/entities/ScoreText.dart';
+import 'package:atari_breakout_flutter/view/titleText.dart';
 import 'package:atari_breakout_flutter/entities/gameBoard.dart';
-import 'package:atari_breakout_flutter/gameState.dart';
+import 'package:atari_breakout_flutter/view/gameState.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 
-import 'entities/ball.dart';
-import 'entities/brick.dart';
-import 'entities/paddle.dart';
+import '../entities/ball.dart';
+import '../entities/brick.dart';
+import '../entities/paddle.dart';
 
 class GameController extends Game implements HorizontalDragDetector {
   // Game Objects
   late GameBoard _board;
   late Rect _background, _ballRect, _paddleRect;
   late List<Rect> _bricksRect = [];
-  late ScoreText _scoreText;
   late GameState _state;
 
   // Colors
@@ -30,7 +28,9 @@ class GameController extends Game implements HorizontalDragDetector {
 
   String _message = "Antippen zum Starten";
   late Size screenSize;
-  late GameOverScreen _gameOverScreen;
+  late TitleText _titleText;
+
+  late bool isInitialised;
 
   GameController() {
     init();
@@ -39,13 +39,13 @@ class GameController extends Game implements HorizontalDragDetector {
   void init() async {
     resize(await Flame.util.initialDimensions());
 
-    _scoreText = ScoreText(this);
-    _gameOverScreen = GameOverScreen(this);
+    _titleText = TitleText(this);
     _board = GameBoard(screenSize.width, screenSize.height);
     _board.initComponents();
 
     _state = GameState.menu;
     createGameComponents();
+    isInitialised = true;
   }
 
   @override
@@ -57,16 +57,17 @@ class GameController extends Game implements HorizontalDragDetector {
 
     if (_state == GameState.menu) {
       // Spiel noch nicht gestartet - Hinweis anzeigen
-      _gameOverScreen.render(canvas, _message);
+      _titleText.render(canvas, _message);
     } else {
       // Spiel gestartet
       // Show Game Over
       if (!_board.isStarted) {
-        _gameOverScreen.render(canvas, _message);
-        _state=GameState.menu;
+        isInitialised = false;
+        _titleText.render(canvas, _message);
+        _state = GameState.menu;
         return;
       }
-      _scoreText.render(canvas);
+      _titleText.render(canvas, _board.gameScore.toString());
     }
   }
 
@@ -74,7 +75,6 @@ class GameController extends Game implements HorizontalDragDetector {
   void update(double t) {
     if (_state == GameState.menu) {
     } else {
-
       if (!_board.isStarted) {
         return;
       }
@@ -97,12 +97,7 @@ class GameController extends Game implements HorizontalDragDetector {
       if (_bricksRect.length > _board.bricks.length) {
         createBricks();
       }
-      _scoreText.update(t, _board.gameScore);
     }
-  }
-
-  void restartGame() {
-    _board.restartGame();
   }
 
   void resize(Size size) {
@@ -139,6 +134,14 @@ class GameController extends Game implements HorizontalDragDetector {
     createBricks();
   }
 
+  void restartGame() {
+    if (!isInitialised) {
+      init();
+    }
+    _state = GameState.playing;
+    _board.restartGame();
+  }
+
   @override
   void onHorizontalDragCancel() {
     // NOP
@@ -152,8 +155,6 @@ class GameController extends Game implements HorizontalDragDetector {
   @override
   void onHorizontalDragStart(DragStartDetails details) {
     if (_state == GameState.menu) {
-      _state = GameState.playing;
-      init();
       restartGame();
     } else {
       movePaddle(details.globalPosition.dx);
@@ -163,7 +164,6 @@ class GameController extends Game implements HorizontalDragDetector {
   @override
   void onHorizontalDragUpdate(DragUpdateDetails details) {
     if (_state == GameState.menu) {
-      _state = GameState.playing;
       restartGame();
     } else {
       movePaddle(details.globalPosition.dx);
