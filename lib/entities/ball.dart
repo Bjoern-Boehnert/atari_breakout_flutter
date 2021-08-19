@@ -2,7 +2,7 @@ import 'package:atari_breakout_flutter/entities/gameEntity.dart';
 import 'dart:math';
 
 class Ball extends GameEntity {
-  final int _STEP_SIZE = 10;
+  final int _STEP_SIZE = 5;
   late double _dx, _dy, _speed;
 
   Ball(double x, double y, double size) : super(x, y, size, size) {

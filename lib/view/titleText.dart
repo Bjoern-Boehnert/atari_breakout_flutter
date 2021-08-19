@@ -13,7 +13,7 @@ class TitleText {
 
   void render(Canvas canvas, String message) {
     _painter.text = TextSpan(
-        text: message, style: TextStyle(color: Colors.black, fontSize: 70.0));
+        text: message, style: TextStyle(color: Colors.black, fontSize: 30.0));
     _painter.layout();
     Offset position = Offset(_controller.screenSize.width / 2 - _painter.width / 2,
         _controller.screenSize.height * 0.2 / 2 - _painter.height * 0.2 / 2);
