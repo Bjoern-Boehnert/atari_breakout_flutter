@@ -1,12 +1,12 @@
 import 'dart:ui';
 
 abstract class GameEntity {
-  double _x, _y;
+  double x, y;
   final double width, height;
   late final Rect rect;
 
-  GameEntity(this._x, this._y, this.width, this.height) {
-    rect = Rect.fromLTWH(_x, _y, width, height);
+  GameEntity(this.x, this.y, this.width, this.height) {
+    rect = Rect.fromLTWH(x, y, width, height);
   }
 
   bool isIntersecting(GameEntity other) {
@@ -16,15 +16,4 @@ abstract class GameEntity {
         other.y < height + y;
   }
 
-  double get x => _x;
-
-  double get y => _y;
-
-  set y(value) {
-    _y = value;
-  }
-
-  set x(double value) {
-    _x = value;
-  }
 }

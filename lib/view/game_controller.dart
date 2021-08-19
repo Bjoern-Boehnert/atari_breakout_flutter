@@ -1,14 +1,14 @@
 import 'dart:ui';
 
-import 'package:atari_breakout_flutter/view/titleText.dart';
-import 'package:atari_breakout_flutter/entities/gameBoard.dart';
-import 'package:atari_breakout_flutter/view/gameState.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 
+import '../view/titleText.dart';
+import '../view/gameState.dart';
+import '../entities/gameBoard.dart';
 import '../entities/ball.dart';
 import '../entities/brick.dart';
 import '../entities/paddle.dart';
@@ -27,20 +27,18 @@ class GameController extends Game implements HorizontalDragDetector {
   final Paint _paddleColor = Paint()..color = Colors.green;
 
   String _message = "Antippen zum Starten";
-  late Size screenSize;
   late TitleText _titleText;
 
   late bool isInitialised;
 
-  GameController() {
+  @override
+  Future<void> onLoad() async {
     init();
   }
 
   void init() async {
-    resize(await Flame.util.initialDimensions());
-
     _titleText = TitleText(this);
-    _board = GameBoard(screenSize.width, screenSize.height);
+    _board = GameBoard(size.x, size.y);
     _board.initComponents();
 
     _state = GameState.menu;
@@ -67,7 +65,7 @@ class GameController extends Game implements HorizontalDragDetector {
         _state = GameState.menu;
         return;
       }
-      _titleText.render(canvas, _board.gameScore.toString());
+      _titleText.render(canvas, "Score: " + _board.gameScore.toString());
     }
   }
 
@@ -100,8 +98,14 @@ class GameController extends Game implements HorizontalDragDetector {
     }
   }
 
-  void resize(Size size) {
-    screenSize = size;
+  void resize() {
+    _titleText = TitleText(this);
+    _board = GameBoard(size.x, size.y);
+    _board.initComponents();
+
+    _state = GameState.menu;
+    createGameComponents();
+    isInitialised = true;
   }
 
   // Paddle bewegen
@@ -126,7 +130,7 @@ class GameController extends Game implements HorizontalDragDetector {
     Ball ball = _board.ball;
     Paddle paddle = _board.paddle;
 
-    _background = Rect.fromLTWH(0, 0, screenSize.width, screenSize.height);
+    _background = Rect.fromLTWH(0, 0, size.x, size.y);
     _ballRect = Rect.fromLTWH(ball.x, ball.y, ball.width, ball.height);
     _paddleRect =
         Rect.fromLTWH(paddle.x, paddle.y, paddle.width, paddle.height);
@@ -148,30 +152,30 @@ class GameController extends Game implements HorizontalDragDetector {
   }
 
   @override
-  void onHorizontalDragEnd(DragEndDetails details) {
+  void onHorizontalDragEnd(DragEndInfo details) {
     // NOP
   }
 
   @override
-  void onHorizontalDragStart(DragStartDetails details) {
+  void onHorizontalDragStart(DragStartInfo details) {
     if (_state == GameState.menu) {
       restartGame();
     } else {
-      movePaddle(details.globalPosition.dx);
+      movePaddle(details.eventPosition.global.x);
     }
   }
 
   @override
-  void onHorizontalDragUpdate(DragUpdateDetails details) {
+  void onHorizontalDragUpdate(DragUpdateInfo details) {
     if (_state == GameState.menu) {
       restartGame();
     } else {
-      movePaddle(details.globalPosition.dx);
+      movePaddle(details.eventPosition.global.x);
     }
   }
 
   @override
-  void onHorizontalDragDown(DragDownDetails details) {
+  void onHorizontalDragDown(DragDownInfo details) {
     // NOP
   }
 }
