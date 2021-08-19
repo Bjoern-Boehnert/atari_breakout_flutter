@@ -32,6 +32,7 @@ class GameBoard {
     double brickWidth = _width / brickInRow - margin / brickInRow;
     double brickHeight = _height / 8 - margin / rowsCount;
 
+    bricks.clear();
     for (int i = 0; i < rowsCount; i++) {
       for (int j = 0; j < brickInRow; j++) {
         _bricks.add(new Brick(
@@ -78,6 +79,8 @@ class GameBoard {
     } else if (_ball.y < 0) {
       _ball.reflectY();
     } else if (isDestroyBrick()) {
+
+      bricks.removeWhere((brick) => brick.destroyed);
       _ball.reflectY();
       _gameScore++;
     } else if (_paddle.isIntersecting(_ball)) {
@@ -107,7 +110,6 @@ class GameBoard {
   void restartGame() {
     _isStarted = true;
     _gameScore = 0;
-    initComponents();
   }
 
   double get height => _height;

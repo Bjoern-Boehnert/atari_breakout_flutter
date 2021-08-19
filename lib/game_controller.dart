@@ -1,25 +1,36 @@
 import 'dart:ui';
 
+import 'package:atari_breakout_flutter/entities/GameOverScreen.dart';
+import 'package:atari_breakout_flutter/entities/ScoreText.dart';
 import 'package:atari_breakout_flutter/entities/gameBoard.dart';
+import 'package:atari_breakout_flutter/gameState.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 
 import 'entities/ball.dart';
 import 'entities/brick.dart';
 import 'entities/paddle.dart';
 
 class GameController extends Game implements HorizontalDragDetector {
-  late Size screenSize;
-  late double tileSize;
-  late GameBoard board;
-  late Rect background;
+  // Game Objects
+  late GameBoard _board;
+  late Rect _background, _ballRect, _paddleRect;
+  late List<Rect> _bricksRect = [];
+  late ScoreText _scoreText;
+  late GameState _state;
 
-  Paint bgColor = Paint()..color = Colors.grey;
-  Paint ballColor = Paint()..color = Colors.blue;
-  Paint brickColor = Paint()..color = Colors.red;
-  Paint paddleColor = Paint()..color = Colors.green;
+  // Colors
+  final Paint _bgColor = Paint()..color = Colors.grey;
+  final Paint _ballColor = Paint()..color = Colors.blue;
+  final Paint _brickColor = Paint()..color = Colors.red;
+  final Paint _paddleColor = Paint()..color = Colors.green;
+
+  String _message = "Antippen zum Starten";
+  late Size screenSize;
+  late GameOverScreen _gameOverScreen;
 
   GameController() {
     init();
@@ -27,57 +38,109 @@ class GameController extends Game implements HorizontalDragDetector {
 
   void init() async {
     resize(await Flame.util.initialDimensions());
+
+    _scoreText = ScoreText(this);
+    _gameOverScreen = GameOverScreen(this);
+    _board = GameBoard(screenSize.width, screenSize.height);
+    _board.initComponents();
+
+    _state = GameState.menu;
+    createGameComponents();
   }
 
   @override
   void render(Canvas canvas) {
-    // Background
-    canvas.drawRect(background, bgColor);
+    canvas.drawRect(_background, _bgColor);
+    canvas.drawRect(_ballRect, _ballColor);
+    canvas.drawRect(_paddleRect, _paddleColor);
+    _bricksRect.forEach((e) => canvas.drawRect(e, _brickColor));
 
-    //Paddle
-    Paddle paddle = board.paddle;
-    canvas.drawRect(
-        Rect.fromLTWH(paddle.x, paddle.y, paddle.width, paddle.height),
-        paddleColor);
-
-    // Ball
-    Ball ball = board.ball;
-    canvas.drawRect(
-        Rect.fromLTWH(ball.x, ball.y, ball.width, ball.height), ballColor);
-
-    for (Brick brick in board.bricks) {
-      if (!brick.destroyed) {
-        canvas.drawRect(
-            Rect.fromLTWH(brick.x, brick.y, brick.width, brick.height),
-            brickColor);
+    if (_state == GameState.menu) {
+      // Spiel noch nicht gestartet - Hinweis anzeigen
+      _gameOverScreen.render(canvas, _message);
+    } else {
+      // Spiel gestartet
+      // Show Game Over
+      if (!_board.isStarted) {
+        _gameOverScreen.render(canvas, _message);
+        _state=GameState.menu;
+        return;
       }
+      _scoreText.render(canvas);
     }
-  }
-
-  void restartGame() {
-    board.restartGame();
   }
 
   @override
   void update(double t) {
-    board.doRoundAction();
+    if (_state == GameState.menu) {
+    } else {
+
+      if (!_board.isStarted) {
+        return;
+      }
+
+      // Rundenaktionen ausführen
+      _board.doRoundAction();
+
+      // GameOver Nachricht
+      if (_board.isWin()) {
+        _message = "Gewonnen";
+      } else {
+        _message = "Verloren";
+      }
+
+      // Ball neu rendern
+      Ball ball = _board.ball;
+      _ballRect = Rect.fromLTWH(ball.x, ball.y, ball.width, ball.height);
+
+      // Brick neuzeichnen - wenn zerstört
+      if (_bricksRect.length > _board.bricks.length) {
+        createBricks();
+      }
+      _scoreText.update(t, _board.gameScore);
+    }
+  }
+
+  void restartGame() {
+    _board.restartGame();
   }
 
   void resize(Size size) {
     screenSize = size;
-    print("Size: " + screenSize.toString());
-    board = GameBoard(screenSize.width, screenSize.height);
-    board.initComponents();
-    background = Rect.fromLTWH(0, 0, screenSize.width, screenSize.height);
+  }
+
+  // Paddle bewegen
+  void movePaddle(double val) {
+    _board.movePaddle(val);
+    Paddle paddle = _board.paddle;
+    _paddleRect =
+        Rect.fromLTWH(paddle.x, paddle.y, paddle.width, paddle.height);
+  }
+
+  // Rectangles für Blöcke erstellen
+  void createBricks() {
+    _bricksRect.clear();
+    for (Brick brick in _board.bricks) {
+      _bricksRect
+          .add(Rect.fromLTWH(brick.x, brick.y, brick.width, brick.height));
+    }
+  }
+
+  // Rectangles für alle Game Komponenten erstellen
+  void createGameComponents() {
+    Ball ball = _board.ball;
+    Paddle paddle = _board.paddle;
+
+    _background = Rect.fromLTWH(0, 0, screenSize.width, screenSize.height);
+    _ballRect = Rect.fromLTWH(ball.x, ball.y, ball.width, ball.height);
+    _paddleRect =
+        Rect.fromLTWH(paddle.x, paddle.y, paddle.width, paddle.height);
+
+    createBricks();
   }
 
   @override
   void onHorizontalDragCancel() {
-    // NOP
-  }
-
-  @override
-  void onHorizontalDragDown(DragDownDetails details) {
     // NOP
   }
 
@@ -88,15 +151,27 @@ class GameController extends Game implements HorizontalDragDetector {
 
   @override
   void onHorizontalDragStart(DragStartDetails details) {
-    board.restartGame();
+    if (_state == GameState.menu) {
+      _state = GameState.playing;
+      init();
+      restartGame();
+    } else {
+      movePaddle(details.globalPosition.dx);
+    }
   }
 
   @override
   void onHorizontalDragUpdate(DragUpdateDetails details) {
-    movePaddle(details.globalPosition.dx);
+    if (_state == GameState.menu) {
+      _state = GameState.playing;
+      restartGame();
+    } else {
+      movePaddle(details.globalPosition.dx);
+    }
   }
 
-  void movePaddle(double val) {
-    board.movePaddle(val);
+  @override
+  void onHorizontalDragDown(DragDownDetails details) {
+    // NOP
   }
 }
