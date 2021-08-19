@@ -33,7 +33,7 @@ class GameBoard {
     double brickHeight = _height / 8 - margin / rowsCount;
 
     for (int i = 0; i < rowsCount; i++) {
-      for (int j = 0; j < (rowsCount * brickInRow) / rowsCount; j++) {
+      for (int j = 0; j < brickInRow; j++) {
         _bricks.add(new Brick(
             j * brickWidth + margin / 2,
             i * brickHeight + margin,

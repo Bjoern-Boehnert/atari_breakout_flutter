@@ -15,9 +15,6 @@ class GameController extends Game implements HorizontalDragDetector {
   late double tileSize;
   late GameBoard board;
   late Rect background;
-  late Rect ballRect;
-  late Rect paddleRect;
-  late List<Rect> brickRects = [];
 
   Paint bgColor = Paint()..color = Colors.grey;
   Paint ballColor = Paint()..color = Colors.blue;
@@ -48,7 +45,6 @@ class GameController extends Game implements HorizontalDragDetector {
     canvas.drawRect(
         Rect.fromLTWH(ball.x, ball.y, ball.width, ball.height), ballColor);
 
-    //Bricks
     for (Brick brick in board.bricks) {
       if (!brick.destroyed) {
         canvas.drawRect(
