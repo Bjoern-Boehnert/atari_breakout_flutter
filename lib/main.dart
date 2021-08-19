@@ -9,7 +9,22 @@ final GameController controller = GameController();
 void main() {
   Flame.device.fullScreen();
   Flame.device.setOrientation(DeviceOrientation.portraitUp);
-  GameController controller = GameController();
 
-  runApp(GameWidget(game: controller));
+  runApp(
+    MaterialApp(
+      home: Scaffold(
+        body: Stack(
+          alignment: Alignment.topLeft,
+          children: [
+            GameWidget(game: controller),
+            ElevatedButton(onPressed: startGame, child: Text('Spiel starten'))
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+void startGame() {
+  controller.restartGame();
 }
