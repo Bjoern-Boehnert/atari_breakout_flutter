@@ -38,7 +38,6 @@ class GameController extends Game implements HorizontalDragDetector {
   @override
   void render(Canvas canvas) {
 
-
     canvas.drawRect(_background, _bgColor);
     canvas.drawRect(_ballRect, _ballColor);
     canvas.drawRect(_paddleRect, _paddleColor);
