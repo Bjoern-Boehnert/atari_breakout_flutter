@@ -28,16 +28,17 @@ class GameBoard {
     int rowsCount = 4;
 
     double spacing = _width / 256;
-    double margin = _width / 3;
-    double brickWidth = _width / brickInRow - margin / brickInRow;
-    double brickHeight = _height / 8 - margin / rowsCount;
+    double xMargin = _width / 3;
+    double yMargin = _height / 3;
+    double brickWidth = _width / brickInRow - xMargin / brickInRow;
+    double brickHeight = _height / 8 - yMargin / rowsCount;
 
     bricks.clear();
     for (int i = 0; i < rowsCount; i++) {
       for (int j = 0; j < brickInRow; j++) {
         _bricks.add(new Brick(
-            j * brickWidth + margin / 2,
-            i * brickHeight + margin,
+            j * brickWidth + xMargin / 2,
+            i * brickHeight + yMargin / 2,
             brickWidth - spacing,
             brickHeight - spacing));
       }
@@ -79,7 +80,6 @@ class GameBoard {
     } else if (_ball.y < 0) {
       _ball.reflectY();
     } else if (isDestroyBrick()) {
-
       bricks.removeWhere((brick) => brick.destroyed);
       _ball.reflectY();
       _gameScore++;

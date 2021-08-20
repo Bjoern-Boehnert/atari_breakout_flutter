@@ -153,6 +153,5 @@ class GameController extends Game implements HorizontalDragDetector {
   void onResize(Vector2 size) {
     screenSize = size;
     init();
-    print(size);
   }
 }
