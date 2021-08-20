@@ -26,20 +26,19 @@ class GameController extends Game implements HorizontalDragDetector {
   final Paint _brickColor = Paint()..color = Colors.red;
   final Paint _paddleColor = Paint()..color = Colors.green;
 
-  @override
-  Future<void> onLoad() async {
-    init();
-  }
+  late Vector2 screenSize;
 
   void init() async {
     _titleText = TitleText(this);
-    _board = GameBoard(size.x, size.y)..initComponents();
+    _board = GameBoard(screenSize.x, screenSize.y)..initComponents();
     _state = GameState.menu;
     createGameComponents();
   }
 
   @override
   void render(Canvas canvas) {
+
+
     canvas.drawRect(_background, _bgColor);
     canvas.drawRect(_ballRect, _ballColor);
     canvas.drawRect(_paddleRect, _paddleColor);
@@ -62,6 +61,7 @@ class GameController extends Game implements HorizontalDragDetector {
 
   @override
   void update(double t) {
+
     if (_state == GameState.menu) {
       // TODO: Highscore in Shared Preferences abspeichern
     } else {
@@ -106,7 +106,7 @@ class GameController extends Game implements HorizontalDragDetector {
     Ball ball = _board.ball;
     Paddle paddle = _board.paddle;
 
-    _background = Rect.fromLTWH(0, 0, size.x, size.y);
+    _background = Rect.fromLTWH(0, 0, screenSize.x, screenSize.y);
     _ballRect = Rect.fromLTWH(ball.x, ball.y, ball.width, ball.height);
     _paddleRect =
         Rect.fromLTWH(paddle.x, paddle.y, paddle.width, paddle.height);
@@ -147,5 +147,12 @@ class GameController extends Game implements HorizontalDragDetector {
   @override
   void onHorizontalDragDown(DragDownInfo details) {
     // NOP
+  }
+
+  @override
+  void onResize(Vector2 size) {
+    screenSize = size;
+    init();
+    print(size);
   }
 }
