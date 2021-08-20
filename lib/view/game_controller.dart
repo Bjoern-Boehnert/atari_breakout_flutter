@@ -1,7 +1,10 @@
 import 'dart:ui';
 
+import 'package:atari_breakout_flutter/GameActions.dart';
+import 'package:atari_breakout_flutter/entities/brick.dart';
 import 'package:flame/game.dart';
 import 'package:flame/gestures.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 
@@ -11,14 +14,15 @@ import '../entities/paddle.dart';
 import '../view/gameState.dart';
 import '../view/titleText.dart';
 
-class GameController extends Game implements HorizontalDragDetector {
+class GameController extends Game
+    implements HorizontalDragDetector, GameActions {
   // Game Objects
   late GameBoard _board;
   late Rect _background, _ballRect, _paddleRect;
-  late GameState _state;
-  late TitleText _titleText;
+  late TitleText _titleText = TitleText(this);
+  GameState _state = GameState.menu;
   List<Rect> _bricksRect = [];
-  String _message = "Antippen zum Starten";
+  String _message = "Starten drücken";
 
   // Colors
   final Paint _bgColor = Paint()..color = Colors.grey;
@@ -26,18 +30,13 @@ class GameController extends Game implements HorizontalDragDetector {
   final Paint _brickColor = Paint()..color = Colors.red;
   final Paint _paddleColor = Paint()..color = Colors.green;
 
-  late Vector2 screenSize;
-
   void init() async {
-    _titleText = TitleText(this);
-    _board = GameBoard(screenSize.x, screenSize.y)..initComponents();
-    _state = GameState.menu;
+    _board = GameBoard(size.x, size.y, this)..initComponents();
     createGameComponents();
   }
 
   @override
   void render(Canvas canvas) {
-
     canvas.drawRect(_background, _bgColor);
     canvas.drawRect(_ballRect, _ballColor);
     canvas.drawRect(_paddleRect, _paddleColor);
@@ -47,12 +46,6 @@ class GameController extends Game implements HorizontalDragDetector {
       // Spiel noch nicht gestartet - Hinweis anzeigen
       _titleText.render(canvas, _message);
     } else {
-      // Spiel gestartet - Show Game Over
-      if (!_board.isStarted) {
-        _titleText.render(canvas, _message);
-        _state = GameState.menu;
-        return;
-      }
       // Punktezahl updaten
       _titleText.render(canvas, "Score: " + _board.gameScore.toString());
     }
@@ -60,28 +53,15 @@ class GameController extends Game implements HorizontalDragDetector {
 
   @override
   void update(double t) {
-
     if (_state == GameState.menu) {
       // TODO: Highscore in Shared Preferences abspeichern
     } else {
-      if (!_board.isStarted) {
-        return;
-      }
-
       // Rundenaktionen ausführen
       _board.doRoundAction();
 
-      // GameOver Nachricht - Tenary Operator
-      _message = _board.isWin() ? "Gewonnen" : "Verloren";
-
       // Ball neu rendern
-      Ball ball = _board.ball;
-      _ballRect = Rect.fromLTWH(ball.x, ball.y, ball.width, ball.height);
-
-      // Brick neuzeichnen - wenn zerstört
-      if (_bricksRect.length > _board.bricks.length) {
-        createBricks();
-      }
+      _ballRect = Rect.fromLTWH(
+          _board.ball.x, _board.ball.y, _board.ball.width, _board.ball.height);
     }
   }
 
@@ -105,7 +85,7 @@ class GameController extends Game implements HorizontalDragDetector {
     Ball ball = _board.ball;
     Paddle paddle = _board.paddle;
 
-    _background = Rect.fromLTWH(0, 0, screenSize.x, screenSize.y);
+    _background = Rect.fromLTWH(0, 0, size.x, size.y);
     _ballRect = Rect.fromLTWH(ball.x, ball.y, ball.width, ball.height);
     _paddleRect =
         Rect.fromLTWH(paddle.x, paddle.y, paddle.width, paddle.height);
@@ -150,7 +130,30 @@ class GameController extends Game implements HorizontalDragDetector {
 
   @override
   void onResize(Vector2 size) {
-    screenSize = size;
+    super.onResize(size);
     init();
+  }
+
+  @override
+  void changeGameOverMessage(String message) {
+    _message = message;
+
+    // Zu Menu wechseln, wenn Spiel vorbei
+    _state = GameState.menu;
+  }
+
+  @override
+  void brickCollision(Brick brick) {
+    // Brick entfernen
+    _bricksRect.removeWhere((e) => e.left == brick.x && e.top == brick.y);
+
+    // Sound spielen
+    FlameAudio.play('brickdestroyed.mp3', volume: 1);
+  }
+
+  @override
+  void paddleCollision() {
+    // Sound spielen
+    FlameAudio.play('paddlehit.mp3', volume: 1);
   }
 }

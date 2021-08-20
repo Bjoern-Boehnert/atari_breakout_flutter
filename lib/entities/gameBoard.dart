@@ -1,3 +1,4 @@
+import 'package:atari_breakout_flutter/GameActions.dart';
 import 'package:atari_breakout_flutter/entities/paddle.dart';
 
 import 'ball.dart';
@@ -6,21 +7,23 @@ import 'paddle.dart';
 
 class GameBoard {
   final double _width, _height;
-  late Ball _ball;
-  late Paddle _paddle;
-  late List<Brick> _bricks = [];
+  late Ball ball;
+  late Paddle paddle;
+  late List<Brick> bricks = [];
   bool _isStarted = false;
-  int _gameScore = 0;
+  int gameScore = 0;
 
-  GameBoard(this._width, this._height);
+  final GameActions _listener;
+
+  GameBoard(this._width, this._height, this._listener);
 
   void initComponents() {
     // Init Ball
-    this._ball = new Ball(_width / 2, _height / 2, _width / 32);
+    this.ball = new Ball(_width / 2, _height / 2, _width / 32);
 
     // Init Paddle
     double paddleHeight = _height / 16;
-    this._paddle = new Paddle(
+    this.paddle = new Paddle(
         _width / 3, _height - paddleHeight, _width / 3, paddleHeight);
 
     // Init Bricks
@@ -36,7 +39,7 @@ class GameBoard {
     bricks.clear();
     for (int i = 0; i < rowsCount; i++) {
       for (int j = 0; j < brickInRow; j++) {
-        _bricks.add(new Brick(
+        bricks.add(new Brick(
             j * brickWidth + xMargin / 2,
             i * brickHeight + yMargin / 2,
             brickWidth - spacing,
@@ -45,8 +48,8 @@ class GameBoard {
     }
   }
 
-  bool isWin() {
-    for (Brick brick in _bricks) {
+  bool _isWin() {
+    for (Brick brick in bricks) {
       if (!brick.destroyed) {
         return false;
       }
@@ -54,10 +57,11 @@ class GameBoard {
     return true;
   }
 
-  bool isDestroyBrick() {
-    for (Brick brick in _bricks) {
-      if (!brick.destroyed && brick.isIntersecting(_ball)) {
+  bool _isDestroyBrick() {
+    for (Brick brick in bricks) {
+      if (!brick.destroyed && brick.isIntersecting(ball)) {
         brick.destroyed = true;
+        _listener.brickCollision(brick);
         return true;
       }
     }
@@ -69,60 +73,51 @@ class GameBoard {
       return null;
     }
 
-    if (isWin()) {
+    if (_isWin()) {
       // Gewonnen
       _isStarted = false;
-    } else if (_ball.y + _ball.width > _height) {
+      _listener.changeGameOverMessage("Gewonnen");
+    } else if (ball.y + ball.width > _height) {
       // Verloren
       _isStarted = false;
-    } else if (_ball.x < 0 || (_ball.x + _ball.width) > _width) {
-      _ball.reflectX();
-    } else if (_ball.y < 0) {
-      _ball.reflectY();
-    } else if (isDestroyBrick()) {
+      _listener.changeGameOverMessage("Verloren");
+    } else if (ball.x < 0 || (ball.x + ball.width) > _width) {
+      ball.reflectX();
+    } else if (ball.y < 0) {
+      ball.reflectY();
+    } else if (_isDestroyBrick()) {
       bricks.removeWhere((brick) => brick.destroyed);
-      _ball.reflectY();
-      _gameScore++;
-    } else if (_paddle.isIntersecting(_ball)) {
+      ball.reflectY();
+      gameScore++;
+
+
+    } else if (paddle.isIntersecting(ball)) {
       // Is reflected by paddle
-      _ball.reflectY();
+      ball.reflectY();
       double reflectingPos = paddle.getReflectFactor(ball.x + ball.width / 2);
       ball.reflectByPaddle(reflectingPos);
+      _listener.paddleCollision();
     }
-    _ball.move();
+    ball.move();
   }
 
   void movePaddle(double touchPos) {
     // Position the paddle always centrally
-    double xPos = touchPos - _paddle.width / 2;
+    double xPos = touchPos - paddle.width / 2;
 
     if (xPos < 0) {
       // Exceeds left limit
-      _paddle.move(0);
-    } else if (xPos + _paddle.width > _width) {
+      paddle.move(0);
+    } else if (xPos + paddle.width > _width) {
       // Exceeds Right limit
-      _paddle.move(_width - _paddle.width);
+      paddle.move(_width - paddle.width);
     } else {
-      _paddle.move(xPos);
+      paddle.move(xPos);
     }
   }
 
   void restartGame() {
     _isStarted = true;
-    _gameScore = 0;
+    gameScore = 0;
   }
-
-  double get height => _height;
-
-  double get width => _width;
-
-  int get gameScore => _gameScore;
-
-  bool get isStarted => _isStarted;
-
-  List<Brick> get bricks => _bricks;
-
-  Paddle get paddle => _paddle;
-
-  Ball get ball => _ball;
 }

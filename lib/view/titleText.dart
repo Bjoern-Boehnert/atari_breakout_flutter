@@ -15,8 +15,8 @@ class TitleText {
     _painter.text = TextSpan(
         text: message, style: TextStyle(color: Colors.black, fontSize: 30.0));
     _painter.layout();
-    Offset position = Offset(_controller.screenSize.x / 2 - _painter.width / 2,
-        _controller.screenSize.y * 0.2 / 2 - _painter.height * 0.2 / 2);
+    Offset position = Offset(_controller.size.x / 2 - _painter.width / 2,
+        _controller.size.y * 0.2 / 2 - _painter.height * 0.2 / 2);
     _painter.paint(canvas, position);
   }
 }
