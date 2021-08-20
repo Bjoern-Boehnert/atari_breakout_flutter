@@ -9,7 +9,7 @@ final GameController controller = GameController();
 
 void main() {
   Flame.device.fullScreen();
-  Flame.device.setOrientation(DeviceOrientation.portraitUp);
+
 
   runApp(MyApp());
 }

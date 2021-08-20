@@ -148,12 +148,12 @@ class GameController extends Game
     _bricksRect.removeWhere((e) => e.left == brick.x && e.top == brick.y);
 
     // Sound spielen
-    FlameAudio.play('brickdestroyed.mp3', volume: 1);
+    FlameAudio.play('brickdestroyed.mp3');
   }
 
   @override
   void paddleCollision() {
     // Sound spielen
-    FlameAudio.play('paddlehit.mp3', volume: 1);
+    FlameAudio.play('paddlehit.mp3');
   }
 }
