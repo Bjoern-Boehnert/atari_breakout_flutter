@@ -1,16 +1,5 @@
-# atari_breakout_flutter
-
-Atari Breakout as a Flutter App
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# Atari Breakout (Flutter Edition)
+Atari Breakout als Flutter Projekt mit Punkteanzahl. <br>
+Umgesetzt mit der **Flame** Game Engine https://flame-engine.org/docs/#/ 
+<br>
+<img src="https://user-images.githubusercontent.com/27340188/130278200-f13bbc4b-2192-42f9-b20a-805874171c22.gif" width="45%" height="50%">
