@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:atari_breakout_flutter/GameActions.dart';
@@ -7,6 +8,7 @@ import 'package:flame/gestures.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter_settings_screens/flutter_settings_screens.dart';
 
 import '../entities/ball.dart';
 import '../entities/gameBoard.dart';
@@ -22,17 +24,24 @@ class GameController extends Game
   late TitleText _titleText = TitleText(this);
   GameState _state = GameState.menu;
   List<Rect> _bricksRect = [];
-  String _message = "Starten drücken";
+  String _message = "Zum Starten tippen";
 
   // Colors
-  final Paint _bgColor = Paint()..color = Colors.grey;
-  final Paint _ballColor = Paint()..color = Colors.blue;
-  final Paint _brickColor = Paint()..color = Colors.red;
-  final Paint _paddleColor = Paint()..color = Colors.green;
+  Paint _bgColor = Paint()..color = Colors.grey;
+  Paint _ballColor = Paint()..color = Colors.blue;
+  Paint _brickColor = Paint()..color = Colors.red;
+  Paint _paddleColor = Paint()..color = Colors.green;
 
-  void init() async {
-    _board = GameBoard(size.x, size.y, this)..initComponents();
-    createGameComponents();
+  int _rows = 4, _columns = 4, _margin = 16, _spacing = 256;
+
+  void _init() async {
+    _board = GameBoard(size.x, size.y, this);
+    _board.setRowCount(_rows);
+    _board.setColumnCount(_columns);
+    _board.setMargin(_margin);
+    _board.setSpacing(_spacing);
+    _board.initComponents();
+    _createGameComponents();
   }
 
   @override
@@ -66,7 +75,7 @@ class GameController extends Game
   }
 
   // Paddle bewegen
-  void movePaddle(double val) {
+  void _movePaddle(double val) {
     _board.movePaddle(val);
     Paddle paddle = _board.paddle;
     _paddleRect =
@@ -74,14 +83,14 @@ class GameController extends Game
   }
 
   // Rectangles für Blöcke erstellen
-  void createBricks() {
+  void _createBricks() {
     _bricksRect.clear();
     _board.bricks.forEach(
         (e) => _bricksRect.add(Rect.fromLTWH(e.x, e.y, e.width, e.height)));
   }
 
   // Rectangles für alle Game Komponenten erstellen
-  void createGameComponents() {
+  void _createGameComponents() {
     Ball ball = _board.ball;
     Paddle paddle = _board.paddle;
 
@@ -90,11 +99,11 @@ class GameController extends Game
     _paddleRect =
         Rect.fromLTWH(paddle.x, paddle.y, paddle.width, paddle.height);
 
-    createBricks();
+    _createBricks();
   }
 
-  void restartGame() {
-    init();
+  void _restartGame() {
+    _init();
     _state = GameState.playing;
     _board.restartGame();
   }
@@ -112,14 +121,16 @@ class GameController extends Game
   @override
   void onHorizontalDragStart(DragStartInfo details) {
     if (_state == GameState.playing) {
-      movePaddle(details.eventPosition.global.x);
+      _movePaddle(details.eventPosition.global.x);
     }
   }
 
   @override
   void onHorizontalDragUpdate(DragUpdateInfo details) {
     if (_state == GameState.playing) {
-      movePaddle(details.eventPosition.global.x);
+      _movePaddle(details.eventPosition.global.x);
+    } else {
+      _restartGame();
     }
   }
 
@@ -131,7 +142,7 @@ class GameController extends Game
   @override
   void onResize(Vector2 size) {
     super.onResize(size);
-    init();
+    _init();
   }
 
   @override
@@ -155,5 +166,28 @@ class GameController extends Game
   void paddleCollision() {
     // Sound spielen
     FlameAudio.play('paddlehit.mp3');
+  }
+
+  void stopGame() {
+    _state = GameState.menu;
+    _message = "Zum Starten tippen";
+  }
+
+  void applySettings() {
+    _paddleColor = _convertColorToPaint('paddleColor');
+    _brickColor = _convertColorToPaint('brickColor');
+    _ballColor = _convertColorToPaint('ballColor');
+
+    _rows = Settings.getValue('rowCount', 0.0).toInt();
+    _columns = Settings.getValue('columnCount', 0.0).toInt();
+
+    _margin = pow(2, Settings.getValue('margin', 0.0)).toInt();
+    _spacing = 10 * Settings.getValue('spacing', 0.0).toInt();
+    _init();
+  }
+
+  Paint _convertColorToPaint(String key) {
+    Color color = ConversionUtils.colorFromString(Settings.getValue(key, ""));
+    return Paint()..color = color;
   }
 }

@@ -15,6 +15,8 @@ class GameBoard {
 
   final GameActions _listener;
 
+  late int _columnCount, _rowCount, _spacing, _margin;
+
   GameBoard(this._width, this._height, this._listener);
 
   void initComponents() {
@@ -27,21 +29,22 @@ class GameBoard {
         _width / 3, _height - paddleHeight, _width / 3, paddleHeight);
 
     // Init Bricks
-    int brickInRow = 6;
-    int rowsCount = 4;
+    double xMargin = _width / _margin;
+    double yMargin = _height / _margin;
 
-    double spacing = _width / 256;
-    double xMargin = _width / 3;
-    double yMargin = _height / 3;
-    double brickWidth = _width / brickInRow - xMargin / brickInRow;
-    double brickHeight = _height / 8 - yMargin / rowsCount;
+    double _newWidth = _width - xMargin;
+    double _newHeight = _height - yMargin;
+    double spacing = _newWidth / _spacing;
+
+    double brickWidth = _newWidth / _columnCount;
+    double brickHeight = (_newHeight / 2) / _rowCount;
 
     bricks.clear();
-    for (int i = 0; i < rowsCount; i++) {
-      for (int j = 0; j < brickInRow; j++) {
+    for (int i = 0; i < _rowCount; i++) {
+      for (int j = 0; j < _columnCount; j++) {
         bricks.add(new Brick(
-            j * brickWidth + xMargin / 2,
-            i * brickHeight + yMargin / 2,
+            j * brickWidth + xMargin / 2 + spacing / 2,
+            i * brickHeight + yMargin / 2 + spacing / 2,
             brickWidth - spacing,
             brickHeight - spacing));
       }
@@ -89,8 +92,6 @@ class GameBoard {
       bricks.removeWhere((brick) => brick.destroyed);
       ball.reflectY();
       gameScore++;
-
-
     } else if (paddle.isIntersecting(ball)) {
       // Is reflected by paddle
       ball.reflectY();
@@ -119,5 +120,21 @@ class GameBoard {
   void restartGame() {
     _isStarted = true;
     gameScore = 0;
+  }
+
+  void setColumnCount(int columns) {
+    _columnCount = columns;
+  }
+
+  void setRowCount(int rows) {
+    _rowCount = rows;
+  }
+
+  void setSpacing(int spacing) {
+    _spacing = spacing;
+  }
+
+  void setMargin(int margin) {
+    _margin = margin;
   }
 }
